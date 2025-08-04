@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>House Price Prediction</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 1px auto;
+        /* max-width: 600px; */
+      }
+
+      .app-container {
+        background-image: url("https://www.jamesedition.com/stories/wp-content/uploads/2020/12/1_Israel.jpg");
+        background-size: cover;
+        background-position: center;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .form-container {
+        background: white !important;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        width: 100%;
+      }
+
+      label {
+        display: block;
+        margin-top: 15px;
+        font-weight: bold;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        height: 23px;
+        font-size: 16px;
+        transition: border-color 0.3s ease, background-color 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      input[type="number"]:focus {
+        outline: none;
+        border-color: #007bff;
+      }
+
+      /* Invalid input styling */
+      input[type="number"].invalid {
+        border-color: #dc3545;
+        background-color: #fff5f5;
+      }
+
+      /* Valid input styling */
+      input[type="number"].valid {
+        border-color: #28a745;
+        background-color: #f0fff0;
+      }
+
+      /* Error message styling */
+      .error-message {
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 5px;
+        display: none;
+        font-weight: normal;
+      }
+
+      .error-message.show {
+        display: block;
+      }
+
+      /* Helper text styling */
+      .helper-text {
+        color: #666;
+        font-size: 12px;
+        margin-top: 3px;
+        font-weight: normal;
+      }
+
+      input[type="submit"] {
+        padding: 10px 20px;
+        margin-top: 20px;
+      }
+
+      .result {
+        margin-top: 25px;
+        font-size: 18px;
+        color: green;
+      }
+
+      .title {
+        margin-bottom: 40px;
+      }
+
+      .button {
+        background: #007bff;
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 5px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .button:hover {
+        background: #0056b3;
+      }
+
+      .button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+
+      /* Form group styling */
+      .form-group {
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="app-container">
+      <div class="form-container">
+        <h1 class="title">🏠 House Price Prediction</h1>
+        <form method="POST" id="predictionForm">
+          <div class="form-group">
+            <label for="feature1">Overall Quality (OverallQual) (1–10):</label>
+            <input
+              type="number"
+              id="feature1"
+              name="feature1"
+              min="1"
+              max="10"
+              step="1"
+              required
+            />
+            <div class="helper-text">
+              Rate the overall material and finish quality (1=Very Poor, 10=Very
+              Excellent)
+            </div>
+            <div class="error-message" id="error1">
+              Please enter a value between 1 and 10
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="feature2">Living Area (GrLivArea):</label>
+            <input
+              type="number"
+              id="feature2"
+              name="feature2"
+              min="500"
+              max="5000"
+              step="any"
+              required
+            />
+            <div class="helper-text">
+              Above ground living area in square feet (500-5000 sq ft)
+            </div>
+            <div class="error-message" id="error2">
+              Please enter a value between 500 and 5000 square feet
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="feature3">Garage Cars (GarageCars):</label>
+            <input
+              type="number"
+              id="feature3"
+              name="feature3"
+              min="0"
+              max="4"
+              step="1"
+              required
+            />
+            <div class="helper-text">
+              Size of garage in car capacity (0-4 cars)
+            </div>
+            <div class="error-message" id="error3">
+              Please enter a value between 0 and 4
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="feature4"
+              >Total Basement Area (sqft) - (TotalBsmtSF):</label
+            >
+            <input
+              type="number"
+              id="feature4"
+              name="feature4"
+              min="0"
+              max="3000"
+              step="any"
+              required
+            />
+            <div class="helper-text">
+              Total square feet of basement area (0-3000 sq ft)
+            </div>
+            <div class="error-message" id="error4">
+              Please enter a value between 0 and 3000 square feet
+            </div>
+          </div>
+
+          <input
+            class="button"
+            type="submit"
+            value="Predict Price"
+            id="submitBtn"
+          />
+        </form>
+
+        {% if prediction %}
+        <div class="result">
+          Predicted House Price: <strong>${{ prediction }}</strong>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <script>
+      // Define validation rules for each input
+      const validationRules = {
+        feature1: { min: 1, max: 10, name: "Overall Quality", step: 1 },
+        feature2: { min: 500, max: 5000, name: "Living Area", step: "any" },
+        feature3: { min: 0, max: 4, name: "Garage Cars", step: 1 },
+        feature4: {
+          min: 0,
+          max: 3000,
+          name: "Total Basement Area",
+          step: "any",
+        },
+      };
+
+      // Function to validate input
+      function validateInput(input, rules) {
+        const value = parseFloat(input.value);
+        const errorElement = document.getElementById(
+          `error${input.id.slice(-1)}`
+        );
+
+        // Check if value is empty
+        if (input.value === "") {
+          input.classList.remove("valid", "invalid");
+          errorElement.classList.remove("show");
+          return false; // Invalid when empty
+        }
+
+        // Check if value is within range
+        if (isNaN(value) || value < rules.min || value > rules.max) {
+          input.classList.remove("valid");
+          input.classList.add("invalid");
+          errorElement.classList.add("show");
+          return false;
+        } else {
+          input.classList.remove("invalid");
+          input.classList.add("valid");
+          errorElement.classList.remove("show");
+          return true;
+        }
+      }
+
+      // Function to update submit button state
+      function updateSubmitButton() {
+        const submitBtn = document.getElementById("submitBtn");
+        let allValid = true;
+
+        Object.keys(validationRules).forEach((inputName) => {
+          const input = document.getElementById(inputName);
+          const rules = validationRules[inputName];
+
+          if (!validateInput(input, rules)) {
+            allValid = false;
+          }
+        });
+
+        submitBtn.disabled = !allValid;
+      }
+
+      // Add event listeners to all inputs
+      Object.keys(validationRules).forEach((inputName) => {
+        const input = document.getElementById(inputName);
+        const rules = validationRules[inputName];
+
+        // Validate on input (real-time)
+        input.addEventListener("input", function () {
+          validateInput(this, rules);
+          updateSubmitButton();
+        });
+
+        // Validate on blur (when user leaves the field)
+        input.addEventListener("blur", function () {
+          validateInput(this, rules);
+          updateSubmitButton();
+        });
+      });
+
+      // Form submission validation
+      document
+        .getElementById("predictionForm")
+        .addEventListener("submit", function (e) {
+          let allValid = true;
+
+          // Validate all inputs one more time
+          Object.keys(validationRules).forEach((inputName) => {
+            const input = document.getElementById(inputName);
+            const rules = validationRules[inputName];
+
+            if (!validateInput(input, rules)) {
+              allValid = false;
+            }
+          });
+
+          if (!allValid) {
+            e.preventDefault();
+            alert("Please fix all errors before submitting the form.");
+            return false;
+          }
+
+          // If all valid, show loading state
+          const submitBtn = document.getElementById("submitBtn");
+          submitBtn.value = "Predicting...";
+          submitBtn.disabled = true;
+        });
+
+      // Initialize validation on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        updateSubmitButton();
+      });
+    </script>
+  </body>
+</html>
